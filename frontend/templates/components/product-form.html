@@ -1,0 +1,118 @@
+<div x-data="productForm()" 
+     x-init="init()"
+     class="space-y-4">
+    
+    <form @submit.prevent="submit" class="space-y-4">
+        <!-- Campo nombre -->
+        <div>
+            <label class="label">Nombre del producto</label>
+            <input type="text" 
+                   x-model="formData.nombre"
+                   :class="{'input-error': errors.nombre}"
+                   class="input input-bordered w-full">
+            <template x-if="errors.nombre">
+                <p class="text-error text-sm mt-1" x-text="errors.nombre"></p>
+            </template>
+        </div>
+        
+        <!-- Precio y Stock -->
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="label">Precio</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2">$</span>
+                    <input type="number" 
+                           step="0.01"
+                           x-model="formData.precio_venta"
+                           class="input input-bordered w-full pl-8">
+                </div>
+            </div>
+            <div>
+                <label class="label">Stock inicial</label>
+                <input type="number" 
+                       x-model="formData.stock"
+                       class="input input-bordered w-full">
+            </div>
+        </div>
+        
+        <!-- Botones -->
+        <div class="flex gap-2 justify-end pt-4">
+            <button type="button" 
+                    @click="$dispatch('close-modal')"
+                    class="btn btn-ghost">
+                Cancelar
+            </button>
+            <button type="submit" 
+                    :disabled="loading"
+                    class="btn btn-primary">
+                <span x-show="loading" class="loading loading-spinner"></span>
+                <span x-text="productId ? 'Actualizar' : 'Crear'"></span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function productForm() {
+    return {
+        formData: {
+            nombre: '',
+            codigo: '',
+            precio_venta: 0,
+            stock: 0,
+            descripcion: '',
+        },
+        errors: {},
+        loading: false,
+        productId: null,
+        
+        init() {
+            // Si estamos editando, cargar datos
+            if (this.$store.product?.editing) {
+                this.loadProduct(this.$store.product.id);
+            }
+        },
+        
+        async loadProduct(id) {
+            this.loading = true;
+            try {
+                const response = await app.api.get(`/products/${id}/`);
+                this.formData = response;
+                this.productId = id;
+            } catch (error) {
+                app.notifications.error('Error al cargar producto');
+            } finally {
+                this.loading = false;
+            }
+        },
+        
+        async submit() {
+            this.loading = true;
+            this.errors = {};
+            
+            try {
+                if (this.productId) {
+                    await app.api.put(`/products/${this.productId}/`, this.formData);
+                    app.notifications.success('Producto actualizado');
+                } else {
+                    await app.api.post('/products/', this.formData);
+                    app.notifications.success('Producto creado');
+                }
+                
+                // Cerrar modal y refrescar tabla
+                this.$dispatch('close-modal');
+                this.$dispatch('refresh-table');
+                
+            } catch (error) {
+                if (error.status === 400) {
+                    this.errors = error.data;
+                } else {
+                    app.notifications.error(error.message);
+                }
+            } finally {
+                this.loading = false;
+            }
+        }
+    }
+}
+</script>

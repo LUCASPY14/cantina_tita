@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "dev": "npm run dev:css & python manage.py runserver",
+    "dev:css": "tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --watch",
+    "build": "tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --minify",
+    "build:prod": "npm run build && python manage.py collectstatic --noinput"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.3.0",
+    "daisyui": "^3.0.0",
+    "alpinejs": "^3.12.0"
+  }
+}

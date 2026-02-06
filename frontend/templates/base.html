@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Cantina Tita{% endblock %}</title>
+    
+    <!-- Meta tags -->
+    <meta name="description" content="Sistema de gestión para Cantina Tita">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    
+    <!-- Tailwind CSS -->
+    <link href="{% static 'css/tailwind.css' %}" rel="stylesheet">
+    
+    <!-- Configuración global -->
+    <script>
+        window.APP_CONFIG = {
+            debug: {% if debug %}true{% else %}false{% endif %},
+            api: {
+                baseUrl: '{{ API_BASE_URL }}',
+                endpoints: {
+                    products: '{{ API_BASE_URL }}/api/products/',
+                    auth: {
+                        login: '{{ API_BASE_URL }}/api/auth/login/',
+                        logout: '{{ API_BASE_URL }}/api/auth/logout/',
+                    }
+                }
+            },
+            user: {% if user.is_authenticated %}{
+                id: {{ user.id }},
+                username: '{{ user.username }}',
+                email: '{{ user.email }}'
+            }{% else %}null{% endif %},
+            routes: {
+                home: '{% url "web:home" %}',
+                inventario: '{% url "web:inventario" %}',
+            }
+        };
+    </script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-base-100 min-h-screen">
+    <!-- Componentes reutilizables -->
+    {% include 'components/sidebar.html' %}
+    {% include 'components/navbar.html' %}
+    
+    <main class="md:ml-64 pt-16 md:pt-0 transition-all duration-300">
+        <div class="container mx-auto px-4 py-6">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    <!-- Scripts base -->
+    <script src="{% static 'js/alpine.js' %}" defer></script>
+    <script src="{% static 'js/app.js' %}" type="module"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
